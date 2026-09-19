@@ -82,3 +82,16 @@ def test_daily_low_noaa_contract_is_supported():
     assert parsed.settlement_source == "NOAA/NCEI"
     assert parsed.cap_strike == 70
     assert evaluate_market(m).eligible
+
+
+def test_supported_weather_without_numeric_strike_is_ineligible_early():
+    m={"ticker":"WX","title":"Highest temperature in Atlanta today?","rules_primary":"Determined by the National Weather Service final climate report for KATL."}
+    e=evaluate_market(m)
+    assert not e.eligible
+    assert "missing numeric strike" in e.reason
+
+def test_supported_weather_with_inverted_interval_is_ineligible_early():
+    m={"ticker":"WX","title":"Highest temperature in Atlanta today?","rules_primary":"Determined by the National Weather Service final climate report for KATL.","floor_strike":90,"cap_strike":80}
+    e=evaluate_market(m)
+    assert not e.eligible
+    assert "invalid strike interval" in e.reason
