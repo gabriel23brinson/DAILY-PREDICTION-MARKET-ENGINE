@@ -25,3 +25,24 @@ def test_missing_weather_fails_closed():
     except ValueError:
         return
     assert False
+
+
+def test_missing_hourly_critical_evidence_fails_closed():
+    p=payload()
+    p["hourly"]={}
+    try:
+        build_temperature_input(ticker="X",nws_payload=p,retrieved_at=datetime.now(timezone.utc))
+    except ValueError as exc:
+        assert "hourly" in str(exc)
+        return
+    assert False
+
+def test_missing_grid_critical_evidence_fails_closed():
+    p=payload()
+    p["grid"]={}
+    try:
+        build_temperature_input(ticker="X",nws_payload=p,retrieved_at=datetime.now(timezone.utc))
+    except ValueError as exc:
+        assert "grid" in str(exc)
+        return
+    assert False
