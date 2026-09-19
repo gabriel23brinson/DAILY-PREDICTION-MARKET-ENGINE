@@ -1,0 +1,27 @@
+name: Live Kalshi Validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "engine/**"
+      - "scripts/validate_live_kalshi.py"
+      - ".github/workflows/validate-live-kalshi.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install validation dependencies
+        run: pip install "httpx>=0.28,<1" "pydantic>=2.9,<3" "psycopg[binary]>=3.2,<4"
+      - name: Unit tests
+        run: |
+          pip install pytest
+          pytest -q
+      - name: Validate live Kalshi payloads
+        run: python scripts/validate_live_kalshi.py
