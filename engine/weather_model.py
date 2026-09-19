@@ -29,11 +29,11 @@ def build_temperature_input(*, ticker: str, nws_payload: dict[str, Any], retriev
     grid_c=_values(grid,"temperature")
     hourly_periods=(hourly.get("properties") or {}).get("periods") or []
     hourly_f=[float(p["temperature"]) for p in hourly_periods if isinstance(p.get("temperature"),(int,float))]
-    candidates=[]
-    if grid_c: candidates.append(c_to_f(mean(grid_c[:24])))
-    if hourly_f: candidates.append(mean(hourly_f[:24]))
-    if not candidates:
-        raise ValueError("no usable NWS temperature forecast")
+    if not grid_c:
+        raise ValueError("missing critical NWS grid temperature forecast")
+    if not hourly_f:
+        raise ValueError("missing critical NWS hourly temperature forecast")
+    candidates=[c_to_f(mean(grid_c[:24])), mean(hourly_f[:24])]
     center=mean(candidates)
     disagreement=pstdev(candidates) if len(candidates)>1 else 0.0
     sigma=max(2.0, disagreement, pstdev(hourly_f[:24]) if len(hourly_f[:24])>1 else 0.0)
