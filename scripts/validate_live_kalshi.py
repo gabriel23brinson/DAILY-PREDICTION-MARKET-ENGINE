@@ -1,4 +1,5 @@
 from collections import Counter
+import time
 import httpx
 from engine.kalshi import KalshiPublicClient, occurrence_is_same_utc_day
 from engine.schema_validation import validate_market_payload
@@ -20,7 +21,16 @@ def discover_same_day(client):
     same_day = []
     pages = 0
     while pages < MAX_PAGES:
-        payload = client.get_markets(limit=1000, cursor=cursor, status="open")
+        for attempt in range(5):
+            try:
+                payload = client.get_markets(limit=1000, cursor=cursor, status="open")
+                break
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code != 429 or attempt == 4:
+                    raise
+                retry_after = exc.response.headers.get("retry-after")
+                delay = float(retry_after) if retry_after and retry_after.replace(".", "", 1).isdigit() else 2 ** attempt
+                time.sleep(min(delay, 16))
         markets = payload.get("markets", [])
         pages += 1
         discovered += len(markets)
