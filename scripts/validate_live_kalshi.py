@@ -93,7 +93,37 @@ def main() -> None:
         for x in weather_series[:10]
     ])
 
+    temperature_series = [
+        x for x in weather_series
+        if any(token in str(x.get("title") or "").lower() for token in ("temperature", "daily high", "daily low"))
+        or str(x.get("ticker") or "").upper().startswith(("KXHIGH", "KXLOW"))
+    ]
+    print(f"temperature_series_candidates={len(temperature_series)}")
+    direct_weather_same_day = []
+    direct_series_checked = 0
+    for item in temperature_series:
+        ticker = item.get("ticker")
+        if not ticker:
+            continue
+        direct_series_checked += 1
+        try:
+            payload = client.get_markets(limit=1000, status="open", series_ticker=ticker)
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 429:
+                print("direct_weather_series_rate_limited=1")
+                break
+            raise
+        direct_weather_same_day.extend(
+            m for m in payload.get("markets", []) if occurrence_is_same_utc_day(m)
+        )
+        if direct_weather_same_day:
+            break
+    print(f"direct_temperature_series_checked={direct_series_checked}")
+    print(f"direct_weather_same_day_candidates={len(direct_weather_same_day)}")
+
     discovered, pages, same_day, remaining_cursor = discover_same_day(client)
+    if direct_weather_same_day:
+        same_day = direct_weather_same_day + same_day
     if not discovered:
         raise SystemExit("FAIL: Kalshi returned zero open markets")
     print(f"open_markets_discovered={discovered}")
