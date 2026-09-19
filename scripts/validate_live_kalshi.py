@@ -77,6 +77,22 @@ def weather_candidates(markets):
 
 def main() -> None:
     client = KalshiPublicClient()
+    # Discover weather series directly as well as scanning the global market feed.
+    # This avoids depending on Kalshi's global pagination order for Milestone 2.
+    series_payload = client.get_series_list()
+    series = series_payload.get("series", [])
+    weather_series = []
+    for item in series:
+        text = " ".join(str(item.get(k) or "") for k in ("ticker", "title", "category", "tags")).lower()
+        if any(hint in text for hint in WEATHER_HINTS):
+            weather_series.append(item)
+    print(f"series_discovered={len(series)}")
+    print(f"weather_series_candidates={len(weather_series)}")
+    print("weather_series_sample=", [
+        {"ticker": x.get("ticker"), "title": x.get("title"), "category": x.get("category")}
+        for x in weather_series[:10]
+    ])
+
     discovered, pages, same_day, remaining_cursor = discover_same_day(client)
     if not discovered:
         raise SystemExit("FAIL: Kalshi returned zero open markets")
