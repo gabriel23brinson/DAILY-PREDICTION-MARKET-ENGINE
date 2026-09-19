@@ -5,21 +5,42 @@ from engine.schema_validation import validate_market_payload
 from engine.contracts import parse_contract
 
 DETAIL_SAMPLE = 25
+MAX_PAGES = 20
+
+
+def discover_same_day(client):
+    """Page discovery until same-day contracts are found or Kalshi is exhausted.
+
+    The first /markets page is ranking/pagination order, not a promise that today's
+    contracts appear in the first 1,000 records. Never interpret an empty first-page
+    cohort as proof that no same-day markets exist.
+    """
+    cursor = None
+    discovered = 0
+    same_day = []
+    pages = 0
+    while pages < MAX_PAGES:
+        payload = client.get_markets(limit=1000, cursor=cursor, status="open")
+        markets = payload.get("markets", [])
+        pages += 1
+        discovered += len(markets)
+        same_day.extend(m for m in markets if occurrence_is_same_utc_day(m))
+        cursor = payload.get("cursor")
+        if same_day or not cursor or not markets:
+            break
+    return discovered, pages, same_day, cursor
 
 
 def main() -> None:
     client = KalshiPublicClient()
-    payload = client.get_markets(limit=1000, status="open")
-    summaries = payload.get("markets", [])
-    if not summaries:
+    discovered, pages, same_day, remaining_cursor = discover_same_day(client)
+    if not discovered:
         raise SystemExit("FAIL: Kalshi returned zero open markets")
-
-    # V1 only models outcomes that occur today. Validate that cohort rather than
-    # arbitrary cross-category contracts that the engine will never research.
-    same_day = [m for m in summaries if occurrence_is_same_utc_day(m)]
+    print(f"open_markets_discovered={discovered}")
+    print(f"discovery_pages={pages}")
     if not same_day:
-        print(f"open_markets_discovered={len(summaries)}")
-        raise SystemExit("FAIL: no same-day occurrence markets found in first page")
+        suffix = " (page safety cap reached)" if remaining_cursor else ""
+        raise SystemExit(f"FAIL: no same-day occurrence markets found after discovery{suffix}")
 
     details = []
     hydration_failures = []
@@ -53,7 +74,6 @@ def main() -> None:
         warnings.update(check.warnings)
         kinds[parse_contract(market).kind.value] += 1
 
-    print(f"open_markets_discovered={len(summaries)}")
     print(f"same_day_markets_discovered={len(same_day)}")
     print(f"detail_markets_validated={len(details)}")
     print(f"schema_valid={len(details)-len(schema_fail)} schema_failed={len(schema_fail)}")
