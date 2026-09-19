@@ -19,3 +19,20 @@ def test_edge_threshold():
 def test_scoring_prefers_accurate_probability():
     assert brier(.9,1) < brier(.6,1)
     assert log_loss(.9,1) < log_loss(.6,1)
+
+
+def test_weather_probability_rejects_missing_strike_bounds():
+    try:
+        interval_probability(80,3,None,None)
+    except ValueError as exc:
+        assert "missing numeric strike" in str(exc)
+        return
+    assert False
+
+def test_weather_probability_rejects_inverted_strike_interval():
+    try:
+        interval_probability(80,3,85,80)
+    except ValueError as exc:
+        assert "invalid strike interval" in str(exc)
+        return
+    assert False
