@@ -41,7 +41,18 @@ def parse_contract(m: dict[str, Any]) -> ParsedContract:
         kind=ContractKind.WEATHER_DAILY_HIGH
     elif any(x in title for x in ("lowest temperature","low temperature","daily low")):
         kind=ContractKind.WEATHER_DAILY_LOW
-    elif "temperature" in title and re.search(r"\b\d{1,2}(?::\d{2})?\s*(am|pm)\b", title):
+    elif (
+        "temperature" in title
+        and re.search(r"\b\d{1,2}(?::\d{2})?\s*(am|pm)\b", title)
+        and not re.search(r"\b(mention|say|said|tweet|post|player|candidate|person)\b", title)
+        and (
+            "weather company" in rules.lower()
+            or "weather.com" in rules.lower()
+            or bool(re.search(r"\bK[A-Z]{3}\b", rules))
+            or "station" in rules.lower()
+            or "coordinates" in rules.lower()
+        )
+    ):
         kind=ContractKind.WEATHER_HOURLY_TEMP
     reasons=[]
     if not rules: reasons.append("missing rules_primary")
