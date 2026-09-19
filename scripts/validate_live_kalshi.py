@@ -42,6 +42,19 @@ def discover_same_day(client):
     return discovered, pages, same_day, cursor
 
 
+def weather_candidates(markets):
+    """Prioritize summaries that look weather-related before detail hydration."""
+    out = []
+    for market in markets:
+        text = " ".join(
+            str(market.get(k) or "")
+            for k in ("title", "subtitle", "yes_sub_title", "ticker", "event_ticker")
+        ).lower()
+        if any(hint in text for hint in WEATHER_HINTS):
+            out.append(market)
+    return out
+
+
 def main() -> None:
     client = KalshiPublicClient()
     discovered, pages, same_day, remaining_cursor = discover_same_day(client)
