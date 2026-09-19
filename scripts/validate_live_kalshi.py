@@ -78,6 +78,19 @@ def main() -> None:
     print(f"detail_markets_validated={len(details)}")
     print(f"schema_valid={len(details)-len(schema_fail)} schema_failed={len(schema_fail)}")
     print("contract_kinds=", dict(kinds))
+    unknown_samples = [
+        {
+            "ticker": m.get("ticker"),
+            "event_ticker": m.get("event_ticker"),
+            "title": m.get("title"),
+            "subtitle": m.get("subtitle"),
+            "yes_sub_title": m.get("yes_sub_title"),
+            "rules_primary": (m.get("rules_primary") or "")[:500],
+        }
+        for m in details if parse_contract(m).kind.value == "unknown"
+    ]
+    if unknown_samples:
+        print("unknown_contract_samples=", unknown_samples[:5])
     print("warnings=", dict(warnings))
     if schema_fail:
         print("first_schema_failures=", schema_fail[:10])
