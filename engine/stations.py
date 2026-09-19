@@ -11,7 +11,7 @@ class StationTarget:
     confidence: str
     reason: str | None = None
 
-ICAO=re.compile(r"\bK[A-Z]{3}\b")
+ICAO=re.compile(r"\bK[A-Z]{3}\b", re.IGNORECASE)
 COORD=re.compile(r"(-?\d{1,2}(?:\.\d+)?)\s*[,°]\s*(-?\d{1,3}(?:\.\d+)?)")
 
 def extract_station_target(market: dict[str,Any]) -> StationTarget:
@@ -23,5 +23,5 @@ def extract_station_target(market: dict[str,Any]) -> StationTarget:
         lat,lon=float(coord.group(1)),float(coord.group(2))
         if not (-90<=lat<=90 and -180<=lon<=180): lat=lon=None
     if station or lat is not None:
-        return StationTarget(station.group(0) if station else None,lat,lon,"high",None)
+        return StationTarget(station.group(0).upper() if station else None,lat,lon,"high",None)
     return StationTarget(None,None,None,"fail","station/coordinates not identified from contract")
