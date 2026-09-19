@@ -106,13 +106,23 @@ def main() -> None:
         if not ticker:
             continue
         direct_series_checked += 1
-        try:
-            payload = client.get_markets(limit=1000, status="open", series_ticker=ticker)
-        except httpx.HTTPStatusError as exc:
-            if exc.response.status_code == 429:
-                print("direct_weather_series_rate_limited=1")
+        payload = None
+        for attempt in range(5):
+            try:
+                payload = client.get_markets(limit=1000, status="open", series_ticker=ticker)
                 break
-            raise
+            except httpx.HTTPStatusError as exc:
+                if exc.response.status_code != 429 or attempt == 4:
+                    if exc.response.status_code == 429:
+                        print(f"direct_weather_series_skipped_rate_limit={ticker}")
+                        payload = None
+                        break
+                    raise
+                retry_after = exc.response.headers.get("retry-after")
+                delay = float(retry_after) if retry_after and retry_after.replace(".", "", 1).isdigit() else 2 ** attempt
+                time.sleep(min(delay, 16))
+        if payload is None:
+            continue
         direct_weather_same_day.extend(
             m for m in payload.get("markets", []) if occurrence_is_same_utc_day(m)
         )
