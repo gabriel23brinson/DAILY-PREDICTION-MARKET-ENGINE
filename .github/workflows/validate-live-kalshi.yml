@@ -6,6 +6,7 @@ on:
     paths:
       - "engine/**"
       - "scripts/validate_live_kalshi.py"
+      - "tests/**"
       - ".github/workflows/validate-live-kalshi.yml"
 
 jobs:
