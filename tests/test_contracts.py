@@ -55,3 +55,30 @@ def test_temperature_word_in_nonweather_contract_does_not_create_hourly_weather(
     c=parse_contract(m)
     assert c.kind == ContractKind.UNKNOWN
     assert not evaluate_market(m).eligible
+
+
+def test_daily_high_weather_contract_with_station_is_supported():
+    m={
+        "ticker":"KXHIGH-TEST",
+        "title":"Highest temperature in Atlanta today?",
+        "rules_primary":"Determined by the National Weather Service final climate report for KATL.",
+        "floor_strike":90,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.WEATHER_DAILY_HIGH
+    assert parsed.settlement_source == "National Weather Service"
+    assert parsed.floor_strike == 90
+    assert evaluate_market(m).eligible
+
+def test_daily_low_noaa_contract_is_supported():
+    m={
+        "ticker":"KXLOW-TEST",
+        "title":"Lowest temperature in Atlanta today?",
+        "rules_primary":"Resolved using NOAA/NCEI final climate observations for KATL.",
+        "cap_strike":70,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.WEATHER_DAILY_LOW
+    assert parsed.settlement_source == "NOAA/NCEI"
+    assert parsed.cap_strike == 70
+    assert evaluate_market(m).eligible
