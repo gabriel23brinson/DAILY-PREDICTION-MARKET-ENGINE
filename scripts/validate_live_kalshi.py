@@ -37,7 +37,9 @@ def discover_same_day(client):
         discovered += len(markets)
         same_day.extend(m for m in markets if occurrence_is_same_utc_day(m))
         cursor = payload.get("cursor")
-        if same_day or not cursor or not markets:
+        # Keep paging after unrelated same-day markets. Stopping at the first
+        # sports contract can hide weather contracts deeper in Kalshi's catalog.
+        if weather_candidates(same_day) or not cursor or not markets:
             break
     return discovered, pages, same_day, cursor
 
