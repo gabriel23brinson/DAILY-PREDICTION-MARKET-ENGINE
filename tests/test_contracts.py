@@ -34,3 +34,24 @@ def test_unrelated_live_soccer_total_stays_unsupported():
     c=parse_contract(m)
     assert c.kind == ContractKind.UNKNOWN
     assert not evaluate_market(m).eligible
+
+
+def test_weather_semantics_without_settlement_authority_fail_closed():
+    m={"ticker":"WX","title":"Highest temperature in Atlanta today?","rules_primary":"Resolves after the day ends.","floor_strike":90}
+    c=parse_contract(m)
+    assert c.kind == ContractKind.WEATHER_DAILY_HIGH
+    assert c.settlement_source is None
+    assert not evaluate_market(m).eligible
+
+def test_weather_company_domain_identifies_settlement_authority():
+    m={"ticker":"WX","title":"Lowest temperature in Miami today?","rules_primary":"Settlement is based on the final value published at weather.com.","cap_strike":72}
+    c=parse_contract(m)
+    assert c.kind == ContractKind.WEATHER_DAILY_LOW
+    assert c.settlement_source == "The Weather Company"
+    assert evaluate_market(m).eligible
+
+def test_temperature_word_in_nonweather_contract_does_not_create_hourly_weather():
+    m={"ticker":"X","title":"Will a player mention temperature at 5 PM?","rules_primary":"Determined by the National Weather Service."}
+    c=parse_contract(m)
+    assert c.kind == ContractKind.UNKNOWN
+    assert not evaluate_market(m).eligible
