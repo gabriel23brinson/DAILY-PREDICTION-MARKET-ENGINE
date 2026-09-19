@@ -12,6 +12,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PYTHONPATH: ${{ github.workspace }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -24,4 +26,4 @@ jobs:
           pip install pytest
           pytest -q
       - name: Validate live Kalshi payloads
-        run: python scripts/validate_live_kalshi.py
+        run: python -m scripts.validate_live_kalshi
