@@ -23,3 +23,16 @@ Weather is the first model family because NWS provides official forecasts/observ
 
 ## Safety
 Research software. No guarantee of profit. V0.1 does not place trades.
+
+
+## Milestone 2 — live weather contract interpretation
+Goal: promote a live same-day Kalshi weather market from discovery into a defensible research candidate without weakening fail-closed behavior.
+
+Completion criteria:
+1. Identify and hydrate a live same-day weather contract when Kalshi has one available.
+2. Parse its temperature contract kind and numeric strike semantics from the hydrated payload.
+3. Identify the contract's settlement authority/source from its rules.
+4. Extract a defensible station or geographic target required by the weather evidence adapter.
+5. Reject unrelated, ambiguous, or unsupported contracts before modeling.
+6. Preserve a real live payload shape as a regression fixture/test.
+7. Pass the full unit suite and live validation; lack of an available same-day specimen is reported as NO_DATA rather than a code failure.
