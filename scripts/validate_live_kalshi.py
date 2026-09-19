@@ -44,6 +44,24 @@ def discover_same_day(client):
     return discovered, pages, same_day, cursor
 
 
+def hydrate_summaries(client, summaries, limit=DETAIL_SAMPLE):
+    details = []
+    failures = []
+    for summary in summaries[:limit]:
+        ticker = summary.get("ticker")
+        if not ticker:
+            failures.append((None, "summary missing ticker"))
+            continue
+        try:
+            response = client.get_market(ticker)
+            details.append(response.get("market", response))
+        except httpx.HTTPStatusError as exc:
+            failures.append((ticker, exc.response.status_code, exc.response.text[:160]))
+        except Exception as exc:
+            failures.append((ticker, type(exc).__name__, str(exc)[:160]))
+    return details, failures
+
+
 def weather_candidates(markets):
     """Prioritize summaries that look weather-related before detail hydration."""
     out = []
@@ -74,21 +92,7 @@ def main() -> None:
     print(f"weather_same_day_candidates={len(weather_same_day)}")
     sample = weather_same_day[:DETAIL_SAMPLE] if weather_same_day else same_day[:DETAIL_SAMPLE]
 
-    details = []
-    hydration_failures = []
-    for summary in sample:
-        ticker = summary.get("ticker")
-        if not ticker:
-            hydration_failures.append((None, "summary missing ticker"))
-            continue
-        try:
-            response = client.get_market(ticker)
-            market = response.get("market", response)
-            details.append(market)
-        except httpx.HTTPStatusError as exc:
-            hydration_failures.append((ticker, exc.response.status_code, exc.response.text[:160]))
-        except Exception as exc:
-            hydration_failures.append((ticker, type(exc).__name__, str(exc)[:160]))
+    details, hydration_failures = hydrate_summaries(client, sample)
 
     if hydration_failures:
         print("hydration_failures=", hydration_failures[:10])
