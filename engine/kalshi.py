@@ -23,6 +23,11 @@ class KalshiPublicClient:
         r=self.client.get(f"/events/{event_ticker}"); r.raise_for_status(); return r.json()
     def get_series(self,series_ticker:str)->dict[str,Any]:
         r=self.client.get(f"/series/{series_ticker}"); r.raise_for_status(); return r.json()
+    def get_series_list(self, *, category:str|None=None, tags:str|None=None)->dict[str,Any]:
+        params:dict[str,Any]={}
+        if category: params["category"]=category
+        if tags: params["tags"]=tags
+        r=self.client.get("/series",params=params or None); r.raise_for_status(); return r.json()
     def get_orderbook(self,ticker:str,depth:int|None=None)->dict[str,Any]:
         params={"depth":depth} if depth is not None else None
         r=self.client.get(f"/markets/{ticker}/orderbook",params=params); r.raise_for_status(); return r.json()
