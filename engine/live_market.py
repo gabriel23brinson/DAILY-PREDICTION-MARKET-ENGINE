@@ -21,6 +21,14 @@ def _d(v: Any) -> Decimal | None:
     if v is None or v == "": return None
     return Decimal(str(v))
 
+def _price(m: dict[str,Any], dollar_key: str, legacy_cents_key: str) -> Decimal | None:
+    """Kalshi current schema uses *_dollars strings; legacy integer fields are cents."""
+    if m.get(dollar_key) is not None:
+        return _d(m[dollar_key])
+    if m.get(legacy_cents_key) is not None:
+        return _d(m[legacy_cents_key]) / Decimal("100")
+    return None
+
 def capture_live_market(ticker: str, client: KalshiPublicClient | None = None) -> LiveMarketSnapshot:
     client = client or KalshiPublicClient()
     wrapper = client.get_market(ticker)
@@ -29,11 +37,11 @@ def capture_live_market(ticker: str, client: KalshiPublicClient | None = None) -
     return LiveMarketSnapshot(
         ticker=ticker,
         captured_at=datetime.now(timezone.utc),
-        yes_bid=_d(m.get("yes_bid_dollars") or m.get("yes_bid")),
-        yes_ask=_d(m.get("yes_ask_dollars") or m.get("yes_ask")),
-        no_bid=_d(m.get("no_bid_dollars") or m.get("no_bid")),
-        no_ask=_d(m.get("no_ask_dollars") or m.get("no_ask")),
-        volume=_d(m.get("volume_fp") or m.get("volume")),
-        open_interest=_d(m.get("open_interest_fp") or m.get("open_interest")),
+        yes_bid=_price(m,"yes_bid_dollars","yes_bid"),
+        yes_ask=_price(m,"yes_ask_dollars","yes_ask"),
+        no_bid=_price(m,"no_bid_dollars","no_bid"),
+        no_ask=_price(m,"no_ask_dollars","no_ask"),
+        volume=_d(m.get("volume_fp") if m.get("volume_fp") is not None else m.get("volume")),
+        open_interest=_d(m.get("open_interest_fp") if m.get("open_interest_fp") is not None else m.get("open_interest")),
         orderbook=book,
     )
