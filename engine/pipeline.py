@@ -8,14 +8,17 @@ from .stations import extract_station_target
 from .weather import NWSClient
 from .weather_model import build_temperature_input
 from .research import research_weather_contract, ResearchResult
+from .ledger import Ledger
 
 @dataclass(frozen=True)
 class PipelineResult:
     status: str
     reason: str
     research: ResearchResult | None = None
+    prediction_id: int | None = None
 
-def research_market(market: dict[str,Any], *, nws_user_agent: str) -> PipelineResult:
+def research_market(market: dict[str,Any], *, nws_user_agent: str, persist: bool=False,
+                    ledger: Ledger | None=None) -> PipelineResult:
     e=evaluate_market(market)
     if not e.eligible: return PipelineResult("PASS",e.reason)
     target=extract_station_target(market)
@@ -31,4 +34,7 @@ def research_market(market: dict[str,Any], *, nws_user_agent: str) -> PipelineRe
         ask=Decimal(str(ask))
     r=research_weather_contract(ticker=e.contract.ticker,weather=weather,floor=e.contract.floor_strike,
         cap=e.contract.cap_strike,yes_ask=ask)
-    return PipelineResult(r.edge.decision,r.edge.reason,r)
+    prediction_id=None
+    if persist:
+        prediction_id=(ledger or Ledger()).record(market=market,result=r,evidence=weather.evidence)
+    return PipelineResult(r.edge.decision,r.edge.reason,r,prediction_id)
