@@ -21,3 +21,16 @@ def test_missing_rules_fails_closed():
 def test_unknown_contract_fails_closed():
     m={"ticker":"X","title":"Something unrelated","rules_primary":"Some source"}
     assert not evaluate_market(m).eligible
+
+
+def test_unrelated_live_soccer_total_stays_unsupported():
+    m={
+        "ticker":"KXARGNACBTOTAL-26SEP19CATALM-7",
+        "event_ticker":"KXARGNACBTOTAL-26SEP19CATALM",
+        "title":"Will over 6.5 goals be scored?",
+        "yes_sub_title":"Over 6.5 goals scored",
+        "rules_primary":"If over 6.5 goals are scored in the Temperley vs Almagro professional Argentine Nacional B soccer game originally scheduled for Sep 19, 2026 after 90 minutes plus stoppage time (does not include extra time or penalties), then the market resolves to Yes.",
+    }
+    c=parse_contract(m)
+    assert c.kind == ContractKind.UNKNOWN
+    assert not evaluate_market(m).eligible
