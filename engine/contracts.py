@@ -30,6 +30,8 @@ def _source(rules: str) -> str | None:
         return "National Weather Service"
     if "noaa" in low or "ncei" in low:
         return "NOAA/NCEI"
+    if "synoptic data" in low or "synopticdata" in low:
+        return "Synoptic Data"
     return None
 
 def parse_contract(m: dict[str, Any]) -> ParsedContract:
@@ -51,6 +53,8 @@ def parse_contract(m: dict[str, Any]) -> ParsedContract:
             or bool(re.search(r"\bK[A-Z]{3}\b", rules))
             or "station" in rules.lower()
             or "coordinates" in rules.lower()
+            or "synoptic data" in rules.lower()
+            or "synopticdata" in rules.lower()
         )
     ):
         kind=ContractKind.WEATHER_HOURLY_TEMP
