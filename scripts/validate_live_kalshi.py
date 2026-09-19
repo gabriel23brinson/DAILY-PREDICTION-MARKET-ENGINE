@@ -7,6 +7,7 @@ from engine.contracts import parse_contract
 
 DETAIL_SAMPLE = 25
 MAX_PAGES = 50
+WEATHER_HINTS = ("temperature", "weather", "high temp", "low temp", "degrees")
 
 
 def discover_same_day(client):
@@ -52,9 +53,13 @@ def main() -> None:
         suffix = " (page safety cap reached)" if remaining_cursor else ""
         raise SystemExit(f"FAIL: no same-day occurrence markets found after discovery{suffix}")
 
+    weather_same_day = weather_candidates(same_day)
+    print(f"weather_same_day_candidates={len(weather_same_day)}")
+    sample = weather_same_day[:DETAIL_SAMPLE] if weather_same_day else same_day[:DETAIL_SAMPLE]
+
     details = []
     hydration_failures = []
-    for summary in same_day[:DETAIL_SAMPLE]:
+    for summary in sample:
         ticker = summary.get("ticker")
         if not ticker:
             hydration_failures.append((None, "summary missing ticker"))
