@@ -21,4 +21,8 @@ def evaluate_market(m: dict[str, Any]) -> Eligibility:
         return Eligibility(False, c.fail_reason or "unsupported model family", c)
     if c.fail_reason:
         return Eligibility(False, c.fail_reason, c)
-    return Eligibility(True, "supported contract with identified settlement source", c)
+    if c.floor_strike is None and c.cap_strike is None:
+        return Eligibility(False, "supported weather contract missing numeric strike bounds", c)
+    if c.floor_strike is not None and c.cap_strike is not None and c.floor_strike >= c.cap_strike:
+        return Eligibility(False, "supported weather contract has invalid strike interval", c)
+    return Eligibility(True, "supported contract with identified settlement source and strike bounds", c)
