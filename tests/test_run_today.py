@@ -8,7 +8,7 @@ class FakeClient:
 
 def test_discovery_structure(monkeypatch):
     import engine.run_today as rt
-    monkeypatch.setattr(rt,"scan_same_day",lambda client:[{"ticker":"W1","title":"Highest temperature today?","rules_primary":"National Weather Service"}])
+    monkeypatch.setattr(rt,"scan_same_day",lambda client:[{"ticker":"W1","title":"Highest temperature today?","rules_primary":"National Weather Service","floor_strike":80}])
     s=discover_today(FakeClient())
     assert s.scanned_same_day==1
     assert s.supported==1
