@@ -46,3 +46,17 @@ def test_missing_grid_critical_evidence_fails_closed():
         assert "grid" in str(exc)
         return
     assert False
+
+
+def test_stale_critical_weather_evidence_blocks_research():
+    w=build_temperature_input(ticker="X",nws_payload=payload(),retrieved_at=datetime.now(timezone.utc))
+    stale=w.evidence.model_copy(deep=True)
+    stale.items[0].stale=True
+    from engine.weather_model import WeatherModelInput
+    blocked=WeatherModelInput(w.mean_f,w.sigma_f,stale,w.diagnostics)
+    try:
+        research_weather_contract(ticker="X",weather=blocked,floor=65,cap=80,yes_ask=Decimal(".50"))
+    except ValueError as exc:
+        assert "stale critical evidence" in str(exc)
+        return
+    assert False
