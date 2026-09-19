@@ -5,7 +5,7 @@ from engine.schema_validation import validate_market_payload
 from engine.contracts import parse_contract
 
 DETAIL_SAMPLE = 25
-MAX_PAGES = 20
+MAX_PAGES = 50
 
 
 def discover_same_day(client):
