@@ -27,6 +27,22 @@ def research_with_adapter(*, adapter: CategoryResearchAdapter, ticker: str,
         raise ValueError("category adapter returned mismatched ticker")
     return result
 
+@dataclass(frozen=True)
+class WeatherResearchAdapter:
+    weather: WeatherModelInput
+    floor: float | None
+    cap: float | None
+    estimated_cost: Decimal=Decimal("0")
+    minimum_net_edge: Decimal=Decimal("0.05")
+    family: str="weather"
+
+    def research(self, *, ticker: str, yes_ask: Decimal | None) -> ResearchResult:
+        return research_weather_contract(
+            ticker=ticker, weather=self.weather, floor=self.floor, cap=self.cap,
+            yes_ask=yes_ask, estimated_cost=self.estimated_cost,
+            minimum_net_edge=self.minimum_net_edge,
+        )
+
 def research_weather_contract(*, ticker: str, weather: WeatherModelInput, floor: float | None, cap: float | None,
                               yes_ask: Decimal | None, estimated_cost: Decimal=Decimal("0"),
                               minimum_net_edge: Decimal=Decimal("0.05")) -> ResearchResult:
