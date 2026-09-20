@@ -95,3 +95,19 @@ def test_supported_weather_with_inverted_interval_is_ineligible_early():
     e=evaluate_market(m)
     assert not e.eligible
     assert "invalid strike interval" in e.reason
+
+
+def test_synoptic_hourly_temperature_contract_is_supported():
+    m={
+        "ticker":"KXTEMPCHIHS-26SEP1919-T71.99",
+        "title":"Will the temp in Chicago Metro Area be above 71.99° on Sep 19, 2026 at 7pm EDT?",
+        "yes_sub_title":"72° or above",
+        "rules_primary":"If the temperature recorded at Chicago Metro Area for Sep 19, 2026 at 7 PM EDT as reported by Synoptic Data, is above 71.99°, then the market resolves to Yes.",
+        "floor_strike":71.99,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.WEATHER_HOURLY_TEMP
+    assert parsed.settlement_source == "Synoptic Data"
+    assert parsed.floor_strike == 71.99
+    assert parsed.parse_confidence == "high"
+    assert evaluate_market(m).eligible
