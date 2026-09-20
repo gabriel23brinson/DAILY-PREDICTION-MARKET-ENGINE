@@ -37,6 +37,8 @@ class WeatherResearchAdapter:
     family: str="weather"
 
     def research(self, *, ticker: str, yes_ask: Decimal | None) -> ResearchResult:
+        if self.weather.evidence.market_ticker != ticker:
+            raise ValueError("category adapter input has mismatched ticker")
         return research_weather_contract(
             ticker=ticker, weather=self.weather, floor=self.floor, cap=self.cap,
             yes_ask=yes_ask, estimated_cost=self.estimated_cost,
