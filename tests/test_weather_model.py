@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 from engine.weather_model import build_temperature_input
-from engine.research import research_weather_contract
+from engine.research import WeatherResearchAdapter, research_weather_contract, research_with_adapter
 
 def payload():
     return {
@@ -58,5 +58,23 @@ def test_stale_critical_weather_evidence_blocks_research():
         research_weather_contract(ticker="X",weather=blocked,floor=65,cap=80,yes_ask=Decimal(".50"))
     except ValueError as exc:
         assert "stale critical evidence" in str(exc)
+        return
+    assert False
+
+
+def test_weather_adapter_uses_generic_research_boundary():
+    w=build_temperature_input(ticker="X",nws_payload=payload(),retrieved_at=datetime.now(timezone.utc))
+    adapter=WeatherResearchAdapter(weather=w,floor=65,cap=80)
+    r=research_with_adapter(adapter=adapter,ticker="X",yes_ask=Decimal(".50"))
+    assert r.ticker=="X"
+    assert r.edge.decision in {"PAPER","PASS"}
+
+def test_generic_research_boundary_rejects_mismatched_ticker():
+    w=build_temperature_input(ticker="X",nws_payload=payload(),retrieved_at=datetime.now(timezone.utc))
+    adapter=WeatherResearchAdapter(weather=w,floor=65,cap=80)
+    try:
+        research_with_adapter(adapter=adapter,ticker="OTHER",yes_ask=Decimal(".50"))
+    except ValueError as exc:
+        assert "mismatched ticker" in str(exc)
         return
     assert False
