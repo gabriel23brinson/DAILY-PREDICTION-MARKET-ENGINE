@@ -13,6 +13,9 @@ class ResearchResult:
     edge: EdgeResult
     diagnostics: dict
 
+class UnsupportedCategoryError(ValueError):
+    pass
+
 class CategoryResearchAdapter(Protocol):
     """Category-specific research behind a category-agnostic orchestration boundary."""
     family: str
@@ -22,6 +25,9 @@ class CategoryResearchAdapter(Protocol):
 
 def research_with_adapter(*, adapter: CategoryResearchAdapter, ticker: str,
                           yes_ask: Decimal | None) -> ResearchResult:
+    family=getattr(adapter,"family",None)
+    if not isinstance(family,str) or not family.strip():
+        raise UnsupportedCategoryError("category adapter missing model family")
     result=adapter.research(ticker=ticker,yes_ask=yes_ask)
     if result.ticker != ticker:
         raise ValueError("category adapter returned mismatched ticker")
