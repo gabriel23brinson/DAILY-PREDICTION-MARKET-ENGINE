@@ -104,6 +104,7 @@ def test_synoptic_hourly_temperature_contract_is_supported():
         "yes_sub_title":"72° or above",
         "rules_primary":"If the temperature recorded at Chicago Metro Area for Sep 19, 2026 at 7 PM EDT as reported by Synoptic Data, is above 71.99°, then the market resolves to Yes.",
         "floor_strike":71.99,
+        # Regression fixture refreshed after live Synoptic discovery.
     }
     parsed=parse_contract(m)
     assert parsed.kind == ContractKind.WEATHER_HOURLY_TEMP
