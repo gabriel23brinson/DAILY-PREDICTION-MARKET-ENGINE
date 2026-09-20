@@ -44,7 +44,7 @@ def parse_contract(m: dict[str, Any]) -> ParsedContract:
     elif any(x in title for x in ("lowest temperature","low temperature","daily low")):
         kind=ContractKind.WEATHER_DAILY_LOW
     elif (
-        "temperature" in title
+        ("temperature" in title or re.search(r"\\btemp\\b", title))
         and re.search(r"\b\d{1,2}(?::\d{2})?\s*(am|pm)\b", title)
         and not re.search(r"\b(mention|say|said|tweet|post|player|candidate|person)\b", title)
         and (
