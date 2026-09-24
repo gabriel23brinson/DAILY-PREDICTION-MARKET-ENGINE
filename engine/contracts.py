@@ -8,6 +8,7 @@ class ContractKind(str, Enum):
     WEATHER_DAILY_HIGH = "weather_daily_high"
     WEATHER_DAILY_LOW = "weather_daily_low"
     WEATHER_HOURLY_TEMP = "weather_hourly_temp"
+    CRYPTO_PRICE = "crypto_price"
     UNKNOWN = "unknown"
 
 @dataclass(frozen=True)
@@ -32,6 +33,10 @@ def _source(rules: str) -> str | None:
         return "NOAA/NCEI"
     if "synoptic data" in low or "synopticdata" in low:
         return "Synoptic Data"
+    if "coinbase" in low:
+        return "Coinbase"
+    if "cf benchmarks" in low:
+        return "CF Benchmarks"
     return None
 
 def parse_contract(m: dict[str, Any]) -> ParsedContract:
@@ -43,6 +48,12 @@ def parse_contract(m: dict[str, Any]) -> ParsedContract:
         kind=ContractKind.WEATHER_DAILY_HIGH
     elif any(x in title for x in ("lowest temperature","low temperature","daily low")):
         kind=ContractKind.WEATHER_DAILY_LOW
+    elif (
+        re.search(r"\b(bitcoin|btc|ethereum|eth)\b", title)
+        and re.search(r"\b(price|above|below|higher|lower)\b", title)
+        and src in {"Coinbase","CF Benchmarks"}
+    ):
+        kind=ContractKind.CRYPTO_PRICE
     elif (
         ("temperature" in title or "temp" in title.split())
         and re.search(r"\b\d{1,2}(?::\d{2})?\s*(am|pm)\b", title)
