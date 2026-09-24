@@ -112,3 +112,30 @@ def test_synoptic_hourly_temperature_contract_is_supported():
     assert parsed.floor_strike == 71.99
     assert parsed.parse_confidence == "high"
     assert evaluate_market(m).eligible
+
+
+def test_crypto_price_contract_is_classified_but_not_model_eligible_yet():
+    m={
+        "ticker":"KXBTC-TEST",
+        "title":"Will Bitcoin price be above $100,000 today?",
+        "rules_primary":"The market resolves using the Bitcoin price reported by Coinbase.",
+        "floor_strike":100000,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.CRYPTO_PRICE
+    assert parsed.settlement_source == "Coinbase"
+    assert parsed.parse_confidence == "high"
+    e=evaluate_market(m)
+    assert not e.eligible
+    assert "unsupported" in e.reason
+
+def test_crypto_without_approved_settlement_source_fails_closed():
+    m={
+        "ticker":"KXBTC-TEST",
+        "title":"Will Bitcoin price be above $100,000 today?",
+        "rules_primary":"Resolves using a crypto price feed.",
+        "floor_strike":100000,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.UNKNOWN
+    assert not evaluate_market(m).eligible
