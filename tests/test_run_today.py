@@ -69,3 +69,26 @@ def test_operational_cycle_includes_resolution_counts(monkeypatch):
     assert cycle.daily.scanned_same_day==10
     assert cycle.resolutions_checked==4
     assert cycle.resolutions_completed==2
+
+
+def test_unified_daily_run_counts_early_pass_and_failure(monkeypatch):
+    import engine.run_today as rt
+    from engine.pipeline import PipelineResult
+    markets=[
+        {"ticker":"EARLY","title":"Highest temperature today?","rules_primary":"National Weather Service","floor_strike":80},
+        {"ticker":"BROKEN","title":"Highest temperature today?","rules_primary":"National Weather Service","floor_strike":80},
+    ]
+    monkeypatch.setattr(rt,"scan_same_day",lambda client:markets)
+    def fake_research(market, **kwargs):
+        if market["ticker"]=="BROKEN":
+            raise RuntimeError("evidence unavailable")
+        return PipelineResult("PASS","missing verified evidence")
+    run=rt.run_today(client=FakeClient(),researcher=fake_research)
+    assert run.supported==2
+    assert run.researched==0
+    assert run.paper==0
+    assert run.passed==1
+    assert len(run.early_passes)==1
+    assert run.early_passes[0].ticker=="EARLY"
+    assert len(run.failures)==1
+    assert run.failures[0].ticker=="BROKEN"
