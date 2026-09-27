@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable
 from .kalshi import KalshiPublicClient
 from .scanner import scan_same_day
@@ -59,7 +59,7 @@ class DailyRun:
     paper: int
     passed: int
     ranked: list[RankedCandidate]
-    failures: list[ResearchFailure]
+    failures: list[ResearchFailure] = field(default_factory=list)
 
 def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
               researcher: Callable[...,PipelineResult]=research_market, **research_kwargs: Any) -> DailyRun:
