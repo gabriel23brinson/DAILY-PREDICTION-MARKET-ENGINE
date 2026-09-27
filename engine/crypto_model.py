@@ -5,6 +5,7 @@ from math import log, sqrt
 from statistics import pstdev
 from typing import Any
 import httpx
+from .http_retry import with_http_retry
 from .evidence import EvidenceBundle, EvidenceItem, SourceTier
 
 COINBASE_BASE_URL="https://api.exchange.coinbase.com"
@@ -21,9 +22,9 @@ class CoinbasePublicClient:
     def __init__(self, timeout: float=15.0) -> None:
         self.client=httpx.Client(base_url=COINBASE_BASE_URL,timeout=timeout,headers={"User-Agent":"prediction-market-research/0.1"})
     def ticker(self, product_id: str) -> dict[str,Any]:
-        r=self.client.get(f"/products/{product_id}/ticker"); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: self.client.get(f"/products/{product_id}/ticker")); r.raise_for_status(); return r.json()
     def candles(self, product_id: str, *, granularity: int=300) -> list[list[Any]]:
-        r=self.client.get(f"/products/{product_id}/candles",params={"granularity":granularity}); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: self.client.get(f"/products/{product_id}/candles",params={"granularity":granularity})); r.raise_for_status(); return r.json()
 
 def product_for_title(title: str) -> str | None:
     low=title.lower()
