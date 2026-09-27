@@ -5,6 +5,7 @@ from .kalshi import KalshiPublicClient
 from .scanner import scan_same_day
 from .eligibility import evaluate_market
 from .pipeline import PipelineResult, research_market
+from .resolver import resolve_pending
 
 @dataclass(frozen=True)
 class ScanSummary:
@@ -61,3 +62,18 @@ def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
     paper=sum(1 for x in ranked if x.result.status=="PAPER")
     passed=sum(1 for x in ranked if x.result.status=="PASS")
     return DailyRun(summary.scanned_same_day,summary.supported,len(ranked),paper,passed,ranked)
+
+
+@dataclass(frozen=True)
+class OperationalCycle:
+    daily: DailyRun
+    resolutions_checked: int
+    resolutions_completed: int
+
+def run_operational_cycle(*, client: KalshiPublicClient | None=None, persist: bool=True,
+                          researcher: Callable[...,PipelineResult]=research_market,
+                          resolver: Callable[...,dict[str,int]]=resolve_pending,
+                          **research_kwargs: Any) -> OperationalCycle:
+    daily=run_today(client=client,persist=persist,researcher=researcher,**research_kwargs)
+    resolution=resolver(client=client)
+    return OperationalCycle(daily,resolution.get("checked",0),resolution.get("resolved",0))
