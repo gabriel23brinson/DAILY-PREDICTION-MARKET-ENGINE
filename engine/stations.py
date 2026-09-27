@@ -14,7 +14,12 @@ class StationTarget:
 ICAO=re.compile(r"\bK[A-Z]{3}\b", re.IGNORECASE)
 COORD=re.compile(r"(-?\d{1,2}(?:\.\d+)?)\s*[,°]\s*(-?\d{1,3}(?:\.\d+)?)")
 
-# Verified series-location mappings used only when contract text omits coordinates.\nSERIES_COORDS={\n    "KXTEMPMIAH": (25.7959,-80.2870),\n}\n\ndef extract_station_target(market: dict[str,Any]) -> StationTarget:
+# Verified fallback coordinates for Kalshi series whose contract text omits coordinates.
+SERIES_COORDS={
+    "KXTEMPMIAH": (25.7959,-80.2870),
+}
+
+def extract_station_target(market: dict[str,Any]) -> StationTarget:
     text=" ".join(str(market.get(k) or "") for k in ("rules_primary","rules_secondary","title","subtitle"))
     station=ICAO.search(text)
     coord=COORD.search(text)
@@ -23,7 +28,8 @@ COORD=re.compile(r"(-?\d{1,2}(?:\.\d+)?)\s*[,°]\s*(-?\d{1,3}(?:\.\d+)?)")
     lat=lon=None
     if coord:
         lat,lon=float(coord.group(1)),float(coord.group(2))
-        if not (-90<=lat<=90 and -180<=lon<=180): lat=lon=None
+        if not (-90<=lat<=90 and -180<=lon<=180):
+            lat=lon=None
     if lat is None and series:
         lat,lon=SERIES_COORDS[series]
     if station or lat is not None:
