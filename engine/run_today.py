@@ -1,9 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 from .kalshi import KalshiPublicClient
 from .scanner import scan_same_day
 from .eligibility import evaluate_market
+from .pipeline import PipelineResult, research_market
 
 @dataclass(frozen=True)
 class ScanSummary:
@@ -11,6 +12,11 @@ class ScanSummary:
     supported: int
     rejected: int
     candidates: list[dict[str,Any]]
+
+@dataclass(frozen=True)
+class RankedCandidate:
+    market: dict[str,Any]
+    result: PipelineResult
 
 def discover_today(client: KalshiPublicClient | None=None) -> ScanSummary:
     client=client or KalshiPublicClient()
@@ -24,3 +30,16 @@ def discover_today(client: KalshiPublicClient | None=None) -> ScanSummary:
         else:
             rejected+=1
     return ScanSummary(len(markets),len(candidates),rejected,candidates)
+
+def research_candidates(summary: ScanSummary, *, researcher: Callable[...,PipelineResult]=research_market,
+                        persist: bool=False, **research_kwargs: Any) -> list[RankedCandidate]:
+    ranked=[]
+    for candidate in summary.candidates:
+        market=candidate["market"]
+        try:
+            result=researcher(market,persist=persist,**research_kwargs)
+        except Exception:
+            continue
+        if result.research is not None:
+            ranked.append(RankedCandidate(market,result))
+    return sorted(ranked,key=lambda x: x.result.research.edge.net_edge,reverse=True)
