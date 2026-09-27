@@ -17,3 +17,25 @@ def test_pipeline_fails_closed_when_contract_has_station_but_no_coordinates():
     assert r.status=="PASS"
     assert "coordinates" in r.reason
     assert r.research is None
+
+
+class FakeCoinbase:
+    def ticker(self, product_id):
+        assert product_id=="BTC-USD"
+        return {"price":"100000"}
+    def candles(self, product_id):
+        return [[3,0,0,0,100100,0],[2,0,0,0,100000,0],[1,0,0,0,99900,0]]
+
+def test_crypto_pipeline_reaches_research_without_weather_station():
+    market={
+        "ticker":"KXBTC-TEST",
+        "title":"Will Bitcoin price be above $99,000 today?",
+        "rules_primary":"The market resolves using the Bitcoin price reported by Coinbase.",
+        "floor_strike":99000,
+        "yes_ask_dollars":"0.50",
+    }
+    r=research_market(market,coinbase=FakeCoinbase())
+    assert r.status in {"PAPER","PASS"}
+    assert r.research is not None
+    assert r.research.ticker=="KXBTC-TEST"
+    assert r.research.probability.method=="lognormal_intraday_v0"
