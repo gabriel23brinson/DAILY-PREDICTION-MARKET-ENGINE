@@ -13,6 +13,7 @@ SUPPORTED={
     ContractKind.WEATHER_DAILY_HIGH,
     ContractKind.WEATHER_DAILY_LOW,
     ContractKind.WEATHER_HOURLY_TEMP,
+    ContractKind.CRYPTO_PRICE,
 }
 
 def evaluate_market(m: dict[str, Any]) -> Eligibility:
@@ -22,7 +23,7 @@ def evaluate_market(m: dict[str, Any]) -> Eligibility:
     if c.fail_reason:
         return Eligibility(False, c.fail_reason, c)
     if c.floor_strike is None and c.cap_strike is None:
-        return Eligibility(False, "supported weather contract missing numeric strike bounds", c)
+        return Eligibility(False, "supported contract missing numeric strike bounds", c)
     if c.floor_strike is not None and c.cap_strike is not None and c.floor_strike >= c.cap_strike:
-        return Eligibility(False, "supported weather contract has invalid strike interval", c)
+        return Eligibility(False, "supported contract has invalid strike interval", c)
     return Eligibility(True, "supported contract with identified settlement source and strike bounds", c)
