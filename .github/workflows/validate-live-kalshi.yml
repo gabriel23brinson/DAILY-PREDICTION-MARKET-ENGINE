@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - "engine/**"
+      - "app.py"
+      - "requirements.txt"
       - "scripts/validate_live_kalshi.py"
       - "scripts/run_operational_cycle.py"
       - "tests/**"
@@ -28,6 +30,8 @@ jobs:
         run: |
           pip install pytest
           pytest -q
+      - name: Validate Streamlit app imports
+        run: python -c "import app"
       - name: Validate live Kalshi payloads
         run: python -m scripts.validate_live_kalshi
       - name: Smoke test operational research path
