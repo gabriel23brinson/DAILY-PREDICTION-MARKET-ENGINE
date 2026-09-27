@@ -114,7 +114,7 @@ def test_synoptic_hourly_temperature_contract_is_supported():
     assert evaluate_market(m).eligible
 
 
-def test_crypto_price_contract_is_classified_but_not_model_eligible_yet():
+def test_crypto_price_contract_is_model_eligible():
     m={
         "ticker":"KXBTC-TEST",
         "title":"Will Bitcoin price be above $100,000 today?",
@@ -126,8 +126,7 @@ def test_crypto_price_contract_is_classified_but_not_model_eligible_yet():
     assert parsed.settlement_source == "Coinbase"
     assert parsed.parse_confidence == "high"
     e=evaluate_market(m)
-    assert not e.eligible
-    assert "unsupported" in e.reason
+    assert e.eligible
 
 def test_crypto_without_approved_settlement_source_fails_closed():
     m={
