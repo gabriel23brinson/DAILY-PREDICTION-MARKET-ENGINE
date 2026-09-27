@@ -5,6 +5,11 @@ from typing import Any
 import httpx
 from .http_retry import with_http_retry
 
+def _checked_get(client: httpx.Client, path: str, **kwargs):
+    r=client.get(path,**kwargs)
+    r.raise_for_status()
+    return r
+
 BASE_URL = "https://external-api.kalshi.com/trade-api/v2"
 _TICKER_DATE = re.compile(r"(?:^|-)(\d{2})(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2})(?:$|[A-Z0-9-])")
 _MONTHS = {m: i for i, m in enumerate(("JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"), 1)}
