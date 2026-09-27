@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from math import erf, sqrt
+from math import erf, sqrt, log
 
 def normal_cdf(x: float, mean: float, sigma: float) -> float:
     if sigma <= 0: raise ValueError("sigma must be positive")
