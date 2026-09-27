@@ -18,10 +18,14 @@ def extract_station_target(market: dict[str,Any]) -> StationTarget:
     text=" ".join(str(market.get(k) or "") for k in ("rules_primary","rules_secondary","title","subtitle"))
     station=ICAO.search(text)
     coord=COORD.search(text)
+    ticker=str(market.get("ticker") or "").upper()
+    series=next((key for key in SERIES_COORDS if ticker.startswith(key)),None)
     lat=lon=None
     if coord:
         lat,lon=float(coord.group(1)),float(coord.group(2))
         if not (-90<=lat<=90 and -180<=lon<=180): lat=lon=None
+    if lat is None and series:
+        lat,lon=SERIES_COORDS[series]
     if station or lat is not None:
         return StationTarget(station.group(0).upper() if station else None,lat,lon,"high",None)
     return StationTarget(None,None,None,"fail","station/coordinates not identified from contract")
