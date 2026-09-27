@@ -36,3 +36,14 @@ Completion criteria:
 5. Reject unrelated, ambiguous, or unsupported contracts before modeling.
 6. Preserve a real live payload shape as a regression fixture/test.
 7. Pass the full unit suite and live validation; lack of an available same-day specimen is reported as NO_DATA rather than a code failure.
+
+
+## V0.1 operation
+
+1. Apply `migrations/001_prediction_ledger.sql` to the Supabase/PostgreSQL database.
+2. Set `SUPABASE_DATABASE_URL` to the database connection string.
+3. Set `NWS_USER_AGENT` to a descriptive application/contact user agent.
+4. Run a non-persistent live check with `python -m scripts.run_operational_cycle --smoke`.
+5. Run the persistent PAPER cycle with `python -m scripts.run_operational_cycle`. This records PAPER predictions and evidence, then checks unresolved PAPER predictions for settlement and scoring.
+
+Operational output reports scanned, supported, researched, PAPER, PASS, failed, failure diagnostics, early PASS reasons, ranked candidates, and resolution counts. The engine remains PAPER-only and does not place orders.
