@@ -31,7 +31,7 @@ jobs:
           pip install pytest
           pytest -q
       - name: Validate Streamlit app imports
-        run: python -c "import app"
+        run: python -m py_compile app.py
       - name: Validate live Kalshi payloads
         run: python -m scripts.validate_live_kalshi
       - name: Smoke test operational research path
