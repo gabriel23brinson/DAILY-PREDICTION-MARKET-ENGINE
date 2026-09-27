@@ -43,8 +43,6 @@ def research_candidates(summary: ScanSummary, *, researcher: Callable[...,Pipeli
             continue
         if result.research is not None:
             ranked.append(RankedCandidate(market,result))
-        elif result.status=="PASS":
-            early_passes.append(EarlyPass(str(market.get("ticker") or ""),result.reason))
     return sorted(ranked,key=lambda x: x.result.research.edge.net_edge,reverse=True)
 
 
@@ -84,6 +82,8 @@ def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
             continue
         if result.research is not None:
             ranked.append(RankedCandidate(market,result))
+        elif result.status=="PASS":
+            early_passes.append(EarlyPass(str(market.get("ticker") or ""),result.reason))
     ranked.sort(key=lambda x: x.result.research.edge.net_edge,reverse=True)
     paper=sum(1 for x in ranked if x.result.status=="PAPER")
     passed=sum(1 for x in ranked if x.result.status=="PASS") + len(early_passes)
