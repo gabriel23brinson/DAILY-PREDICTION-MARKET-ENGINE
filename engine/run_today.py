@@ -59,6 +59,7 @@ class DailyRun:
     paper: int
     passed: int
     ranked: list[RankedCandidate]
+    failures: list[ResearchFailure]
 
 def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
               researcher: Callable[...,PipelineResult]=research_market, **research_kwargs: Any) -> DailyRun:
