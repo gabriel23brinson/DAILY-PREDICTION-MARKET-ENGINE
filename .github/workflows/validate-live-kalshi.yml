@@ -8,6 +8,7 @@ on:
       - "scripts/validate_live_kalshi.py"
       - "scripts/run_operational_cycle.py"
       - "tests/**"
+      - "migrations/**"
       - ".github/workflows/validate-live-kalshi.yml"
 
 jobs:
