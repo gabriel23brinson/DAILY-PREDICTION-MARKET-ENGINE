@@ -58,3 +58,14 @@ def test_unified_daily_run_reports_counts(monkeypatch):
     assert run.paper==1
     assert run.passed==1
     assert run.ranked[0].market["ticker"]=="A"
+
+
+def test_operational_cycle_includes_resolution_counts(monkeypatch):
+    import engine.run_today as rt
+    monkeypatch.setattr(rt,"run_today",lambda **kwargs: rt.DailyRun(10,3,2,1,1,[]))
+    def fake_resolver(**kwargs):
+        return {"checked":4,"resolved":2}
+    cycle=rt.run_operational_cycle(client=FakeClient(),persist=False,resolver=fake_resolver)
+    assert cycle.daily.scanned_same_day==10
+    assert cycle.resolutions_checked==4
+    assert cycle.resolutions_completed==2
