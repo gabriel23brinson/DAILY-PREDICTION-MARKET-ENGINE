@@ -17,21 +17,21 @@ class KalshiPublicClient:
         params:dict[str,Any]={"limit":limit,"status":status}
         if cursor: params["cursor"]=cursor
         if series_ticker: params["series_ticker"]=series_ticker
-        r=with_http_retry(lambda: self.client.get("/markets",params=params)); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,"/markets",params=params)); return r.json()
     def get_market(self,ticker:str)->dict[str,Any]:
-        r=with_http_retry(lambda: self.client.get(f"/markets/{ticker}")); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,f"/markets/{ticker}")); return r.json()
     def get_event(self,event_ticker:str)->dict[str,Any]:
-        r=with_http_retry(lambda: self.client.get(f"/events/{event_ticker}")); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,f"/events/{event_ticker}")); return r.json()
     def get_series(self,series_ticker:str)->dict[str,Any]:
-        r=with_http_retry(lambda: self.client.get(f"/series/{series_ticker}")); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,f"/series/{series_ticker}")); return r.json()
     def get_series_list(self, *, category:str|None=None, tags:str|None=None)->dict[str,Any]:
         params:dict[str,Any]={}
         if category: params["category"]=category
         if tags: params["tags"]=tags
-        r=with_http_retry(lambda: self.client.get("/series",params=params or None)); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,"/series",params=params or None)); return r.json()
     def get_orderbook(self,ticker:str,depth:int|None=None)->dict[str,Any]:
         params={"depth":depth} if depth is not None else None
-        r=with_http_retry(lambda: self.client.get(f"/markets/{ticker}/orderbook",params=params)); r.raise_for_status(); return r.json()
+        r=with_http_retry(lambda: _checked_get(self.client,f"/markets/{ticker}/orderbook",params=params)); return r.json()
 
 def _parse_dt(value:str|None)->datetime|None:
     if not value: return None
