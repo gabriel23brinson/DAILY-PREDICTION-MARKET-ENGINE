@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Protocol
 from .edge import EdgeResult, evaluate_edge
-from .probability import ProbabilityEstimate, weather_interval_estimate
+from .probability import ProbabilityEstimate, weather_interval_estimate, crypto_threshold_estimate
 from .weather_model import WeatherModelInput
+from .crypto_model import CryptoModelInput
 
 @dataclass(frozen=True)
 class ResearchResult:
@@ -60,3 +61,23 @@ def research_weather_contract(*, ticker: str, weather: WeatherModelInput, floor:
     edge=evaluate_edge(side="YES",model_probability=Decimal(str(p.probability)),executable_price=yes_ask,
                        estimated_cost=estimated_cost,minimum_net_edge=minimum_net_edge)
     return ResearchResult(ticker,p,edge,weather.diagnostics)
+
+
+@dataclass(frozen=True)
+class CryptoResearchAdapter:
+    crypto: CryptoModelInput
+    floor: float | None
+    cap: float | None
+    estimated_cost: Decimal=Decimal("0")
+    minimum_net_edge: Decimal=Decimal("0.05")
+    family: str="crypto"
+
+    def research(self, *, ticker: str, yes_ask: Decimal | None) -> ResearchResult:
+        if self.crypto.evidence.market_ticker != ticker:
+            raise ValueError("category adapter input has mismatched ticker")
+        failure=self.crypto.evidence.critical_failure()
+        if failure: raise ValueError(failure)
+        p=crypto_threshold_estimate(self.crypto.spot,self.crypto.sigma_log,self.floor,self.cap)
+        edge=evaluate_edge(side="YES",model_probability=Decimal(str(p.probability)),executable_price=yes_ask,
+                           estimated_cost=self.estimated_cost,minimum_net_edge=self.minimum_net_edge)
+        return ResearchResult(ticker,p,edge,self.crypto.diagnostics)
