@@ -12,6 +12,7 @@ def _daily_payload(daily) -> dict:
         "paper":daily.paper,
         "passed":daily.passed,
         "failures":[{"ticker":x.ticker,"error":x.error} for x in daily.failures],
+        "early_passes":[{"ticker":x.ticker,"reason":x.reason} for x in daily.early_passes],
         "ranked":[
             {
                 "ticker":x.market.get("ticker"),
