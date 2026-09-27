@@ -138,3 +138,18 @@ def test_crypto_without_approved_settlement_source_fails_closed():
     parsed=parse_contract(m)
     assert parsed.kind == ContractKind.UNKNOWN
     assert not evaluate_market(m).eligible
+
+
+def test_cf_benchmarks_crypto_waits_for_matching_evidence_adapter():
+    m={
+        "ticker":"KXBTC-CF",
+        "title":"Will Bitcoin price be above $100,000 today?",
+        "rules_primary":"The market resolves using the Bitcoin price reported by CF Benchmarks.",
+        "floor_strike":100000,
+    }
+    parsed=parse_contract(m)
+    assert parsed.kind == ContractKind.CRYPTO_PRICE
+    assert parsed.settlement_source == "CF Benchmarks"
+    e=evaluate_market(m)
+    assert not e.eligible
+    assert "not yet supported" in e.reason
