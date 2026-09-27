@@ -17,6 +17,7 @@ COORD=re.compile(r"(-?\d{1,2}(?:\.\d+)?)\s*[,°]\s*(-?\d{1,3}(?:\.\d+)?)")
 # Verified fallback coordinates for Kalshi series whose contract text omits coordinates.
 SERIES_COORDS={
     "KXTEMPMIAH": (25.7959,-80.2870),
+    "KXTEMPNYCHS": (40.7128,-74.0060),
 }
 
 def extract_station_target(market: dict[str,Any]) -> StationTarget:
