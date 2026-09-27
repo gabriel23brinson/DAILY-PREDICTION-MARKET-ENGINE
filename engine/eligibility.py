@@ -22,6 +22,8 @@ def evaluate_market(m: dict[str, Any]) -> Eligibility:
         return Eligibility(False, c.fail_reason or "unsupported model family", c)
     if c.fail_reason:
         return Eligibility(False, c.fail_reason, c)
+    if c.kind is ContractKind.CRYPTO_PRICE and c.settlement_source != "Coinbase":
+        return Eligibility(False, "crypto settlement source is not yet supported by the Coinbase evidence adapter", c)
     if c.floor_strike is None and c.cap_strike is None:
         return Eligibility(False, "supported contract missing numeric strike bounds", c)
     if c.floor_strike is not None and c.cap_strike is not None and c.floor_strike >= c.cap_strike:
