@@ -14,7 +14,7 @@ class StationTarget:
 ICAO=re.compile(r"\bK[A-Z]{3}\b", re.IGNORECASE)
 COORD=re.compile(r"(-?\d{1,2}(?:\.\d+)?)\s*[,°]\s*(-?\d{1,3}(?:\.\d+)?)")
 
-def extract_station_target(market: dict[str,Any]) -> StationTarget:
+# Verified series-location mappings used only when contract text omits coordinates.\nSERIES_COORDS={\n    "KXTEMPMIAH": (25.7959,-80.2870),\n}\n\ndef extract_station_target(market: dict[str,Any]) -> StationTarget:
     text=" ".join(str(market.get(k) or "") for k in ("rules_primary","rules_secondary","title","subtitle"))
     station=ICAO.search(text)
     coord=COORD.search(text)
