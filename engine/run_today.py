@@ -43,6 +43,8 @@ def research_candidates(summary: ScanSummary, *, researcher: Callable[...,Pipeli
             continue
         if result.research is not None:
             ranked.append(RankedCandidate(market,result))
+        elif result.status=="PASS":
+            early_passes.append(EarlyPass(str(market.get("ticker") or ""),result.reason))
     return sorted(ranked,key=lambda x: x.result.research.edge.net_edge,reverse=True)
 
 
@@ -50,6 +52,11 @@ def research_candidates(summary: ScanSummary, *, researcher: Callable[...,Pipeli
 class ResearchFailure:
     ticker: str
     error: str
+
+@dataclass(frozen=True)
+class EarlyPass:
+    ticker: str
+    reason: str
 
 @dataclass(frozen=True)
 class DailyRun:
@@ -60,12 +67,14 @@ class DailyRun:
     passed: int
     ranked: list[RankedCandidate]
     failures: list[ResearchFailure] = field(default_factory=list)
+    early_passes: list[EarlyPass] = field(default_factory=list)
 
 def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
               researcher: Callable[...,PipelineResult]=research_market, **research_kwargs: Any) -> DailyRun:
     summary=discover_today(client)
     ranked=[]
     failures=[]
+    early_passes=[]
     for candidate in summary.candidates:
         market=candidate["market"]
         try:
@@ -77,8 +86,8 @@ def run_today(*, client: KalshiPublicClient | None=None, persist: bool=False,
             ranked.append(RankedCandidate(market,result))
     ranked.sort(key=lambda x: x.result.research.edge.net_edge,reverse=True)
     paper=sum(1 for x in ranked if x.result.status=="PAPER")
-    passed=sum(1 for x in ranked if x.result.status=="PASS")
-    return DailyRun(summary.scanned_same_day,summary.supported,len(ranked),paper,passed,ranked,failures)
+    passed=sum(1 for x in ranked if x.result.status=="PASS") + len(early_passes)
+    return DailyRun(summary.scanned_same_day,summary.supported,len(ranked),paper,passed,ranked,failures,early_passes)
 
 
 @dataclass(frozen=True)
