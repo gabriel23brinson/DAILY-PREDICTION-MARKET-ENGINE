@@ -25,7 +25,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install validation dependencies
-        run: pip install "httpx>=0.28,<1" "pydantic>=2.9,<3" "psycopg[binary]>=3.2,<4"
+        run: pip install -r requirements.txt
       - name: Unit tests
         run: |
           pip install pytest
