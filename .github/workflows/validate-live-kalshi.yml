@@ -6,6 +6,7 @@ on:
     paths:
       - "engine/**"
       - "scripts/validate_live_kalshi.py"
+      - "scripts/run_operational_cycle.py"
       - "tests/**"
       - ".github/workflows/validate-live-kalshi.yml"
 
@@ -28,3 +29,5 @@ jobs:
           pytest -q
       - name: Validate live Kalshi payloads
         run: python -m scripts.validate_live_kalshi
+      - name: Smoke test operational research path
+        run: python -m scripts.run_operational_cycle --smoke
